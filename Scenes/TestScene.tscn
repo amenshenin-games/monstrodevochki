@@ -1,0 +1,54 @@
+[gd_scene format=3 uid="uid://d4ejmvcd4f5cj"]
+
+[ext_resource type="PackedScene" uid="uid://bv42g323prh5f" path="res://addons/YarnSpinner-Godot/Scenes/DefaultDialogueSystem.tscn" id="1_wicfy"]
+[ext_resource type="Resource" uid="uid://cdf73dyumrwsa" path="res://MyYarnProject/Project.yarnproject" id="2_go42g"]
+[ext_resource type="Script" uid="uid://cjik4aaipjolk" path="res://Scripts/Systems/CommandHandler.cs" id="2_sreuk"]
+[ext_resource type="Script" uid="uid://dx3i31gtbsiv5" path="res://Scripts/Systems/VisualSystem.gd" id="3_0f5h7"]
+[ext_resource type="Theme" uid="uid://b40g0rke3aoqw" path="res://Assets/Theme/main_theme.tres" id="3_sreuk"]
+
+[node name="YarnSpinnerCanvasLayer" unique_id=350562131 instance=ExtResource("1_wicfy")]
+script = null
+
+[node name="CommandHandler" type="Node" parent="." index="0" unique_id=175087275]
+script = ExtResource("2_sreuk")
+
+[node name="VisualSystem" type="Node" parent="." index="1" unique_id=240097350]
+script = ExtResource("3_0f5h7")
+
+[node name="CharacterImage" parent="Images/HBoxContainer" parent_id_path=PackedInt32Array(703577904) index="0" unique_id=2119367424]
+visible = false
+stretch_mode = 4
+
+[node name="DialogueRunner" parent="." index="4" unique_id=1412460189]
+size_flags_vertical = 3
+yarnProject = ExtResource("2_go42g")
+autoStart = true
+startNode = "Start"
+
+[node name="HBoxContainer" parent="LinePresenter/PresenterControl" parent_id_path=PackedInt32Array(280640872) index="0" unique_id=1692821757]
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="CharacterNameText" parent="LinePresenter/PresenterControl/HBoxContainer/Container/VBoxContainer" parent_id_path=PackedInt32Array(881434152) index="0" unique_id=1662101718]
+fit_content = true
+
+[node name="LineText" parent="LinePresenter/PresenterControl/HBoxContainer/Container/VBoxContainer" parent_id_path=PackedInt32Array(881434152) index="1" unique_id=1246746644]
+size_flags_vertical = 3
+theme = ExtResource("3_sreuk")
+
+[node name="ColorRect" parent="LinePresenter/PresenterControl/HBoxContainer/Container/VBoxContainer/LineText" index="2" unique_id=2139037226]
+offset_left = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+
+[node name="ContinueButton" parent="LinePresenter/PresenterControl" parent_id_path=PackedInt32Array(280640872) index="1" unique_id=1502992809]
+modulate = Color(1, 1, 1, 0)
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_vertical = 2
