@@ -29,16 +29,18 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 stretch_mode = 4
 
-[node name="CharacterImage" type="TextureRect" parent="." unique_id=2119367424]
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
+[node name="Images" type="Node" parent="." unique_id=345335468]
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Images" unique_id=703577904]
+anchors_preset = 15
+anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
-grow_vertical = 0
+grow_vertical = 2
+alignment = 1
 
-[node name="CommandHandler" type="Node" parent="." unique_id=29218293]
+[node name="CharacterImage" type="TextureRect" parent="Images/HBoxContainer" unique_id=2119367424]
+layout_mode = 2
 
 [node name="DialogueRunner" type="Control" parent="." unique_id=1412460189 node_paths=PackedStringArray("variableStorage", "lineProvider", "dialoguePresenters")]
 layout_mode = 3
@@ -215,7 +217,7 @@ anchor_bottom = 0.5
 offset_left = -587.0
 offset_top = 79.0
 offset_right = 585.0
-offset_bottom = 428.0
+offset_bottom = 323.0
 grow_horizontal = 2
 grow_vertical = 2
 

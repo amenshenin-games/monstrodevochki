@@ -35,10 +35,6 @@ position: 12,-969
 /// Trust level with Lime (0-2+). At 2+, Lime gives the Scroll.
 <<declare $lime_trust = 0>>
 
-<<change_portrait 3>>
-Narrator: so... Welcome to the Skeleton Story demonstration.
-Narrator: This project shows Yarn Spinner features without narrative content.
-
 // JUMP COMMAND
 // jump NodeName moves execution to another node permanently.
 // The current node ends and the target node begins.
@@ -47,14 +43,13 @@ Narrator: This project shows Yarn Spinner features without narrative content.
 title: MainArea
 position: -48,-675
 ---
-<<change_portrait 1>>
 <<change_background lake>>
 // =============================================================================
 // HUB NODE - Central location that branches to all areas
 // =============================================================================
 // This is the "hub" in a hub-and-spoke pattern. Players always return here.
 // Options change based on game state (visited areas, items collected).
-<<change_character 0>>
+// <<change_character 0>>
 Narrator: You are in the Main Area. This is the central hub.
 
 // LINE GROUPS (SALIENCY)
@@ -86,6 +81,8 @@ Narrator: You are in the Main Area. This is the central hub.
     <<jump TertiaryArea>>
 -> Check inventory
     <<jump Inventory>>
+-> TEST
+    <<jump TEST>>
 -> End demo
     Narrator: Thanks for exploring the Skeleton Story!
 ===

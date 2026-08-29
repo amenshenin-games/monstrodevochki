@@ -10,7 +10,7 @@ position: -526,-242
 // MULTI-BRANCH CONDITIONS
 // Use if, elseif, and else to create branching dialogue.
 // Only ONE branch executes - the first one whose condition is true.
-<<change_character 4>>
+<<change_image 4>>
 <<if $blue_trust == 0>>
     // First meeting - introduce the character
     Blue: Hello! I'm Blue. I demonstrate basic dialogue patterns.
@@ -61,7 +61,7 @@ position: -309,-248
 // multiple variables, and arithmetic operators (+=, -=).
 
 Green: I'm Green. I demonstrate variables and conditionals.
-<<change_character green>>
+<<change_image green>>
 <<if $green_trust == 0>>
     Green: Let me show you how variables work.
     // VARIABLE INTERPOLATION
@@ -101,7 +101,7 @@ position: 8,-305
 // =============================================================================
 // This character shows: gated content based on items, multi-choice quiz,
 // score tracking, and conditional rewards.
-<<change_character 2>>
+<<change_image 2>>
 Red: I'm Red. I show branching dialogue with consequences.
 
 // GATING CONTENT
