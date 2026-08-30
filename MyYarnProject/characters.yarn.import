@@ -1,0 +1,14 @@
+[remap]
+
+importer="yarnscript"
+type="Resource"
+uid="uid://dsrwj3lksv087"
+path="res://.godot/imported/characters.yarn-dfa65bb1f4b9b57d62ae5c0474c4870f.tres"
+
+[deps]
+
+source_file="res://MyYarnProject/characters.yarn"
+dest_files=["res://.godot/imported/characters.yarn-dfa65bb1f4b9b57d62ae5c0474c4870f.tres"]
+
+[params]
+
