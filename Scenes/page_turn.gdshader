@@ -64,10 +64,25 @@ void fragment() {
 	float nz = nlen > 0.0001 ? n.z / nlen : 1.0;
 	bool show_back = nz < 0.0;
 
-	vec4 col = show_back
-		? texture(back_texture, vec2(1.0 - UV.x, UV.y))
-		: texture(front_texture, UV);
+	vec2 front_uv = UV;
+	vec2 back_uv = vec2(1.0 - UV.x, UV.y);
 
-	float shade = mix(1.0, 0.55 + 0.45 * abs(nz), light_strength);
+	// При reverse геометрия зеркалится по X,
+	// поэтому компенсируем это в текстурах.
+	if (reverse) {
+		front_uv.x = 1.0 - front_uv.x;
+		back_uv.x = 1.0 - back_uv.x;
+	}
+
+	vec4 col = show_back
+		? texture(back_texture, back_uv)
+		: texture(front_texture, front_uv);
+
+	float shade = mix(
+		1.0,
+		0.55 + 0.45 * abs(nz),
+		light_strength
+	);
+
 	COLOR = vec4(col.rgb * shade, col.a);
 }
