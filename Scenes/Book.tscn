@@ -1,0 +1,513 @@
+[gd_scene format=3 uid="uid://buaqocanj7yeq"]
+
+[ext_resource type="PackedScene" uid="uid://boeynklgnx54n" path="res://Scenes/RightPageTurn.tscn" id="1_85ged"]
+
+[sub_resource type="GDScript" id="GDScript_85ged"]
+script/source = "extends Control
+
+var test_texture: Texture2D
+
+@export var edge_width: float = 120.0
+@export var turn_duration: float = 0.7
+
+# Левая страница текущего разворота.
+# Для теста начинаем с 3, чтобы были и прошлые 1-2.
+var current_left_page: int = 3
+
+@onready var left_page_turn = $LeftPageTurn
+@onready var right_page_turn = $RightPageTurn
+
+# 6 страниц, которые одновременно находятся в памяти.
+@onready var previous_left: SubViewport = $BottomLeft/Viewport
+@onready var previous_right: SubViewport = $LeftPageTurn/back_face
+
+@onready var current_left: SubViewport = $LeftPageTurn/front_face
+@onready var current_right: SubViewport = $RightPageTurn/front_face
+
+@onready var next_left: SubViewport = $RightPageTurn/back_face
+@onready var next_right: SubViewport = $BottomRight/Viewport
+
+@export var hover_progress: float = 0.06
+@export var hover_speed: float = 2.5
+
+@export var drag_threshold: float = 0.5
+
+var dragging: bool = false
+var drag_side: int = 0
+
+var suppress_hover: bool = false
+# -1 = левая страница
+#  1 = правая страница
+
+var drag_start_position := Vector2.ZERO
+
+var is_turning: bool = false
+
+func _randomize_turn(page_turn) -> void:
+	var mesh := page_turn.get_node(\"turning_page\") as MeshInstance2D
+	var mat := mesh.material as ShaderMaterial
+
+	if mat == null:
+		return
+
+	mat.set_shader_parameter(\"theta_min\", randf_range(0.32, 0.39))
+	mat.set_shader_parameter(\"A_near\", randf_range(-0.13, -0.18))
+	mat.set_shader_parameter(\"A_far\", randf_range(-1.8, -2.2))
+	mat.set_shader_parameter(\"light_strength\", randf_range(0.30, 0.40))
+
+func _process(delta: float) -> void:
+	if is_turning or dragging:
+		return
+
+	var mouse_pos := get_local_mouse_position()
+
+	# После перелистывания не включаем hover,
+	# пока мышь не уйдёт от обоих краёв.
+	if suppress_hover:
+		left_page_turn.progress = move_toward(
+			left_page_turn.progress,
+			0.0,
+			hover_speed * delta
+		)
+
+		right_page_turn.progress = move_toward(
+			right_page_turn.progress,
+			0.0,
+			hover_speed * delta
+		)
+
+		var at_left_edge := mouse_pos.x <= edge_width
+		var at_right_edge := mouse_pos.x >= size.x - edge_width
+
+		if not at_left_edge and not at_right_edge:
+			suppress_hover = false
+
+		return
+
+	var left_target := 0.0
+	var right_target := 0.0
+
+	if Rect2(Vector2.ZERO, size).has_point(mouse_pos):
+		if mouse_pos.x >= size.x - edge_width:
+			right_target = hover_progress
+
+		elif mouse_pos.x <= edge_width:
+			left_target = hover_progress
+
+	left_page_turn.progress = move_toward(
+		left_page_turn.progress,
+		left_target,
+		hover_speed * delta
+	)
+
+	right_page_turn.progress = move_toward(
+		right_page_turn.progress,
+		right_target,
+		hover_speed * delta
+	)
+
+func _ready() -> void:
+	var left_mesh := left_page_turn.get_node(\"turning_page\") as MeshInstance2D
+	var right_mesh := right_page_turn.get_node(\"turning_page\") as MeshInstance2D
+
+	left_mesh.material = left_mesh.material.duplicate()
+	right_mesh.material = right_mesh.material.duplicate()
+
+	left_page_turn.reverse = true
+	right_page_turn.reverse = false
+
+	var source_rect := $LeftPageTurn/front_face/TextureRect as TextureRect
+
+	if source_rect != null:
+		test_texture = source_rect.texture
+
+	_refresh_pages()
+
+
+func _input(event: InputEvent) -> void:
+	if is_turning:
+		return
+
+	# Нажали мышь
+	if event is InputEventMouseButton:
+		if event.button_index != MOUSE_BUTTON_LEFT:
+			return
+
+		var mouse_pos := get_local_mouse_position()
+
+		if event.pressed:
+			if not Rect2(Vector2.ZERO, size).has_point(mouse_pos):
+				return
+
+			# Правый край
+			if mouse_pos.x >= size.x - edge_width:
+				right_page_turn.move_to_front()
+				_randomize_turn(right_page_turn)
+				dragging = true
+				drag_side = 1
+				drag_start_position = mouse_pos
+
+			# Левый край
+			elif mouse_pos.x <= edge_width:
+				left_page_turn.move_to_front()
+				_randomize_turn(left_page_turn)
+				dragging = true
+				drag_side = -1
+				drag_start_position = mouse_pos
+
+		else:
+			# Отпустили мышь
+			if dragging:
+				_finish_drag(mouse_pos)
+
+
+	# Двигаем мышь с зажатой кнопкой
+	elif event is InputEventMouseMotion:
+		if dragging:
+			_update_drag(get_local_mouse_position())
+
+func _update_drag(mouse_pos: Vector2) -> void:
+	var half_width := size.x * 0.5
+
+	if drag_side == 1:
+		# Правую страницу тащим справа налево
+		var new_progress := (size.x - mouse_pos.x) / half_width
+		right_page_turn.progress = clampf(new_progress, 0.0, 1.0)
+
+	elif drag_side == -1:
+		# Левую страницу тащим слева направо
+		var new_progress := mouse_pos.x / half_width
+		left_page_turn.progress = clampf(new_progress, 0.0, 1.0)
+
+
+func _finish_drag(mouse_pos: Vector2) -> void:
+	var side := drag_side
+	var movement := mouse_pos.distance_to(drag_start_position)
+
+	dragging = false
+	drag_side = 0
+	
+	suppress_hover = true
+
+	var was_click := movement < 12.0
+
+	if side == 1:
+		if was_click or right_page_turn.progress >= drag_threshold:
+			_complete_forward_drag()
+		else:
+			_cancel_drag(right_page_turn)
+
+	elif side == -1:
+		if was_click or left_page_turn.progress >= drag_threshold:
+			_complete_backward_drag()
+		else:
+			_cancel_drag(left_page_turn)
+			
+func _cancel_drag(page_turn) -> void:
+	is_turning = true
+
+	var tween := create_tween()
+	tween.tween_property(
+		page_turn,
+		\"progress\",
+		0.0,
+		0.25
+	).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+	await tween.finished
+
+	is_turning = false
+
+
+func _complete_forward_drag() -> void:
+	is_turning = true
+	right_page_turn.move_to_front()
+
+	var remaining: float = 1.0 - float(right_page_turn.progress)
+	var duration: float = maxf(0.1, turn_duration * remaining)
+
+	var tween := create_tween()
+	tween.tween_property(
+		right_page_turn,
+		\"progress\",
+		1.0,
+		duration
+	).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+
+	await tween.finished
+
+	# Переходим на следующий разворот.
+	current_left_page += 2
+
+	# Пока перелистнутый правый лист лежит слева и закрывает эту сторону,
+	# готовим новые текущие страницы.
+	_set_page(current_left, current_left_page)
+	_set_page(current_right, current_left_page + 1)
+
+	# Даём SubViewport один кадр обновить текстуры.
+	await get_tree().process_frame
+
+	# ВАЖНО:
+	# скрываем лист перед возвратом progress 1 -> 0,
+	# чтобы обратное движение вообще не было видно.
+	# На один и тот же кадр прячем лист и сбрасываем шейдер.
+	# Игрок этого состояния не увидит.
+	right_page_turn.visible = false
+	right_page_turn.progress = 0.0
+	right_page_turn.visible = true
+	
+	# Теперь лист снова лежит сверху и показывает current_right.
+	# Можно безопасно обновить скрытые страницы.
+	_refresh_hidden_pages()
+	suppress_hover = true
+	is_turning = false
+
+	# Обновляем две прошлые и две следующие страницы.
+	_refresh_hidden_pages()
+
+	await get_tree().process_frame
+
+	right_page_turn.visible = true
+
+	suppress_hover = true
+	is_turning = false
+
+
+func _complete_backward_drag() -> void:
+	if current_left_page <= 1:
+		await _cancel_drag(left_page_turn)
+		return
+
+	is_turning = true
+	left_page_turn.move_to_front()
+
+	var remaining: float = 1.0 - float(left_page_turn.progress)
+	var duration: float = maxf(0.1, turn_duration * remaining)
+
+	var tween := create_tween()
+	tween.tween_property(
+		left_page_turn,
+		\"progress\",
+		1.0,
+		duration
+	).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+
+	await tween.finished
+
+	# Переходим на предыдущий разворот.
+	current_left_page -= 2
+
+	_set_page(current_left, current_left_page)
+	_set_page(current_right, current_left_page + 1)
+
+	await get_tree().process_frame
+
+	# Скрываем лист, пока мгновенно возвращаем шейдер в начало.
+	left_page_turn.visible = false
+	left_page_turn.progress = 0.0
+	left_page_turn.visible = true
+	
+	_refresh_hidden_pages()
+	_refresh_hidden_pages()
+
+	await get_tree().process_frame
+
+	left_page_turn.visible = true
+
+	suppress_hover = true
+	is_turning = false
+	
+func turn_forward() -> void:
+	if is_turning:
+		return
+
+	is_turning = true
+	
+	right_page_turn.move_to_front()
+
+	right_page_turn.progress = 0.0
+
+	var tween := create_tween()
+
+	tween.tween_property(
+		right_page_turn,
+		\"progress\",
+		1.0,
+		turn_duration
+	).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+
+	await tween.finished
+
+	# Новый разворот.
+	current_left_page += 2
+
+	# Переставляем шесть страниц.
+	_refresh_pages()
+
+	# Возвращаем шейдер в начальное положение,
+	# но теперь на нём уже новый текущий разворот.
+	right_page_turn.progress = 0.0
+
+	is_turning = false
+
+
+func turn_backward() -> void:
+	if is_turning:
+		return
+
+	# Для теста не уходим раньше страниц 1-2.
+	if current_left_page <= 1:
+		return
+
+	is_turning = true
+
+	left_page_turn.progress = 0.0
+	
+	left_page_turn.move_to_front()
+
+	var tween := create_tween()
+
+	tween.tween_property(
+		left_page_turn,
+		\"progress\",
+		1.0,
+		turn_duration
+	).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+
+	await tween.finished
+
+	current_left_page -= 2
+
+	_refresh_pages()
+
+	left_page_turn.progress = 0.0
+
+	is_turning = false
+
+
+func _refresh_pages() -> void:
+	_refresh_current_pages()
+	_refresh_hidden_pages()
+
+
+func _refresh_current_pages() -> void:
+	# То, что игрок видит как текущий разворот
+	_set_page(current_left, current_left_page)
+	_set_page(current_right, current_left_page + 1)
+
+
+func _refresh_hidden_pages() -> void:
+	# Прошлый разворот
+	_set_page(previous_left, current_left_page - 2)
+	_set_page(previous_right, current_left_page - 1)
+
+	# Следующий разворот
+	_set_page(next_left, current_left_page + 2)
+	_set_page(next_right, current_left_page + 3)
+
+
+func _set_page(viewport: SubViewport, page_number: int) -> void:
+	# Убираем старое тестовое содержимое страницы.
+	for child in viewport.get_children():
+		viewport.remove_child(child)
+		child.queue_free()
+
+
+	var page := Control.new()
+	page.name = \"RuntimePage\"
+	page.position = Vector2.ZERO
+	page.size = Vector2(viewport.size.x, viewport.size.y)
+	page.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	viewport.add_child(page)
+
+	var background := ColorRect.new()
+	background.position = Vector2.ZERO
+	background.size = page.size
+	background.color = Color(0.94, 0.91, 0.82, 1.0)
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	page.add_child(background)
+	
+	if test_texture != null:
+		var image := TextureRect.new()
+		image.position = Vector2.ZERO
+		image.size = page.size
+		image.texture = test_texture
+		image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		page.add_child(image)
+
+	var number := Label.new()
+	number.text = str(page_number)
+	number.position = Vector2.ZERO
+	number.size = page.size
+	number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	number.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	number.add_theme_font_size_override(\"font_size\", 120)
+	number.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	page.add_child(number)
+"
+
+[node name="Book" type="Control" unique_id=1523276181]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1152.0
+offset_bottom = 648.0
+script = SubResource("GDScript_85ged")
+
+[node name="BottomLeft" type="SubViewportContainer" parent="." unique_id=1319860361]
+layout_mode = 0
+offset_right = 576.0
+offset_bottom = 648.0
+stretch = true
+
+[node name="Viewport" type="SubViewport" parent="BottomLeft" unique_id=1213877274]
+handle_input_locally = false
+size = Vector2i(576, 648)
+size_2d_override_stretch = true
+render_target_update_mode = 4
+
+[node name="PageContent" type="Control" parent="BottomLeft/Viewport" unique_id=1849315493]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 576.0
+offset_bottom = 648.0
+
+[node name="ColorRect" type="ColorRect" parent="BottomLeft/Viewport/PageContent" unique_id=742178982]
+custom_minimum_size = Vector2(576, 648)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+color = Color(0.76185375, 1.8000901e-05, 0.53138703, 1)
+
+[node name="BottomRight" type="SubViewportContainer" parent="." unique_id=1235268656]
+custom_minimum_size = Vector2(576, 0)
+layout_mode = 0
+offset_left = 576.0
+offset_right = 1152.0
+offset_bottom = 648.0
+
+[node name="Viewport" type="SubViewport" parent="BottomRight" unique_id=1696309826]
+handle_input_locally = false
+size = Vector2i(576, 648)
+render_target_update_mode = 4
+
+[node name="PageContent" type="Control" parent="BottomRight/Viewport" unique_id=2012844970]
+custom_minimum_size = Vector2(576, 648)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ColorRect" type="ColorRect" parent="BottomRight/Viewport/PageContent" unique_id=1974720081]
+custom_minimum_size = Vector2(576, 648)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LeftPageTurn" parent="." unique_id=1097366901 instance=ExtResource("1_85ged")]
+layout_mode = 1
+reverse = true
+
+[node name="RightPageTurn" parent="." unique_id=1132479332 instance=ExtResource("1_85ged")]
+layout_mode = 1
