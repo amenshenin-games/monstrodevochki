@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://cjik4aaipjolk" path="res://Scripts/Systems/CommandHandler.cs" id="2_sreuk"]
 [ext_resource type="Script" uid="uid://dx3i31gtbsiv5" path="res://Scripts/Systems/VisualSystem.gd" id="3_0f5h7"]
 [ext_resource type="Theme" uid="uid://b40g0rke3aoqw" path="res://Assets/Theme/main_theme.tres" id="3_sreuk"]
+[ext_resource type="Script" uid="uid://cj8vepbe8te1d" path="res://Scripts/Data/CustomVariableStorage.cs" id="6_qsjrb"]
 
 [node name="YarnSpinnerCanvasLayer" unique_id=350562131 instance=ExtResource("1_wicfy")]
 script = null
@@ -52,3 +53,6 @@ offset_top = 0.0
 offset_right = 0.0
 offset_bottom = 0.0
 grow_vertical = 2
+
+[node name="InMemoryVariableStorage" parent="." index="8" unique_id=189682707]
+script = ExtResource("6_qsjrb")

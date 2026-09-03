@@ -22,3 +22,11 @@ signal set_stat(Stat: String, Value: int)
 # checks 
 signal check(CheckId: String, Difficulty: int, Stat: String, Disadvantage: bool, Advantage: bool)
 signal passive_check(CheckId: String, Difficulty: int, Stat: String, Disadvantage: bool, Advantage: bool)
+
+# debug
+signal debug_output()
+
+# SYSTEMS
+# data
+signal save_data()
+signal load_data()
