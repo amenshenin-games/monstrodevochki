@@ -1,6 +1,6 @@
 /*
 	КОМАНДЫ.
-	(везде, где есть 'name', можно вставить 'none', чтобы очистить)
+	(везде, где есть 'name', можно вставить 'none', чтобы очистить. отл - команда чисто для отладки)
 	
 	0. Ресет
 	reset() - убирает изображения персонажей, убирает фон, убирает музыку.
@@ -18,8 +18,8 @@
 
 	4. Прокачка
 	upgrade_stat('stat') - производит улучшение характиристики
-	get_stat('stat') - возвращает значение характеристики
-	set_stat('stat', value) - устанавливает значениие характеристики (скорее для отладки)
+отл	get_stat('stat') - возвращает значение характеристики
+отл	set_stat('stat', value) - устанавливает значениие характеристики (скорее для отладки)
 
 	5. Добавляет в систему диалога пункт выбора.
 	check('check_id', difficulty, 'stat', disadvantage, advantage)
@@ -28,6 +28,11 @@
 
 	6. пассивная проверка, возвращает true или false
 	passive_check('check_id', difficulty, 'stat', disadvantage, advantage)
+
+	7. WIP инвентарь
+	inventory_have('name') / inventory_has('name') - возвращает true, если игрок обладает предметом
+	inventory_add('name', value) - добавляет value(по умолчанию 1) предмет в инвентарь
+	inventory_delete('name', value) - убиирает value(по умолчанию 1) предметов name из инвенторя
 
 	Потенциально: добавить персонажа в список доступных для добавления в отряд, добавить в отряд и т.д. связанные с отрядом.
 */
@@ -120,6 +125,26 @@ public partial class CommandHandler : Node
 	public static void PassiveCheck(string CheckId, int Difficulty, string Stat, bool Disadvantage, bool Advantage)
 	{
 		signalBus.EmitSignal("passive_check", CheckId, Difficulty, Stat, Disadvantage, Advantage);
+	}
+
+
+	// debug
+	[YarnCommand("debug_output")]
+	public static void DebugOutput()
+	{
+		signalBus.EmitSignal("debug_output");
+	}
+	
+	[YarnCommand("save")]
+	public static void SaveData()
+	{
+		signalBus.EmitSignal("save_data");
+	}
+
+	[YarnCommand("load")]
+	public static void LoadData()
+	{
+		signalBus.EmitSignal("load_data");
 	}
 
 }

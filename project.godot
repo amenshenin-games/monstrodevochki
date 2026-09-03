@@ -18,6 +18,9 @@ config/icon="res://icon.svg"
 [autoload]
 
 SignalBus="*uid://b543y108tcuhc"
+PlayerData="*uid://cs5212poto6rr"
+GameData="*uid://cjob0766sqbbi"
+SaveManager="*uid://bqnklsmvi66v3"
 
 [display]
 

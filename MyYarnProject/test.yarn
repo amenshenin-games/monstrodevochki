@@ -1,24 +1,65 @@
 title: TEST
 ---
+-> visual
+    <<jump visual>>
+-> data
+    <<jump data>>
+-> BACK
+    <<jump MainArea>>
+===
 
+title: visual
+position: -158,-223
+---
 -> change_image to 1
     <<change_image  1>>
-    <<jump TEST>>
+    <<jump visual>>
 -> change_image to 2
     <<change_image 2>>
-    <<jump TEST>>
+    <<jump visual>>
 -> add_image 1
     <<add_image 1>>
-    <<jump TEST>>
+    <<jump visual>>
 -> add_image 2
     <<add_image 2>>
-    <<jump TEST>>
+    <<jump visual>>
 -> change_background to lake
     <<change_background lake>>
-    <<jump TEST>>
+    <<jump visual>>
 -> change_background to forest
     <<change_background forest>>
+    <<jump visual>>
+-> BACK
     <<jump TEST>>
--> back
-    <<jump MainArea>>
+===
+
+
+title: data
+position: 361,-19
+---
+<<declare $random_var = 1>>
+-> debug output
+    <<debug_output>>
+    current_health = {$current_health} - player_data. random_var = {$random_var} - game_data.
+    <<jump data>>
+-> health += 1, random_var += 1
+    // <<set $current_health = 2>>
+    <<set $current_health += 1>>
+    <<set $random_var += 1>>
+    <<jump data>>
+-> save
+    <<save>>
+    <<jump data>>
+-> load
+    <<load>>
+    <<jump data>>
+-> BACK
+    <<jump TEST>>
+===
+
+title: output
+position: -271,35
+---
+    current_health = $current_health
+    <<jump data>>
 ===

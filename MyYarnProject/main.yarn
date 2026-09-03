@@ -12,8 +12,24 @@ position: 12,-969
 // Variables are prefixed with $ and can be strings, numbers, or booleans.
 // Once declared, they persist for the entire dialogue session.
 
+
+<<declare $player_name = "" as String>>
+<<declare $level = 0 as Number>>
+<<declare $experience = 0 as Number>>
+<<declare $points_available = 0 as Number>>
+<<declare $current_health = 0 as Number>>
+<<declare $money = 0 as Number>>
+
+// Статы (из stats)
+<<declare $strength = 0 as Number>>
+<<declare $agility = 0 as Number>>
+<<declare $mind = 0 as Number>>
+<<declare $personality = 0 as Number>>
+<<declare $health = 0 as Number>>
+
+
 /// The player's display name used in dialogue.
-<<declare $player_name = "Player">>
+// <<declare $player_name = "Player">>
 /// Whether the player has visited the Secondary Area.
 <<declare $visited_secondary = false>>
 /// Whether the player has visited the Tertiary Area.
@@ -38,7 +54,10 @@ position: 12,-969
 // JUMP COMMAND
 // jump NodeName moves execution to another node permanently.
 // The current node ends and the target node begins.
-<<jump MainArea>>
+-> TEST
+    <<jump TEST>>
+-> Start
+    <<jump MainArea>>
 ===
 title: MainArea
 position: -48,-675
@@ -67,6 +86,7 @@ Narrator: You are in the Main Area. This is the central hub.
 <<if $blue_trust == 0>>
     Blue waves from across the room.
 <<endif>>
+
 
 // OPTIONS WITH CONDITIONS
 // Add if condition after an option to show it only when true.
